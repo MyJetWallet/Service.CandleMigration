@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetCoreDecorators" Version="1.0.21" />
-    <PackageReference Include="MyJetWallet.Service.AssetsDictionary.Client" Version="1.9.14" />
+    <PackageReference Include="MyJetWallet.Service.AssetsDictionary.Client" Version="1.9.15" />
     <PackageReference Include="SimpleTrading.CandlesHistory.AzureStorage" Version="1.0.20" />
     <PackageReference Include="SimpleTrading.CandlesHistory.Grpc" Version="1.0.17" />
   </ItemGroup>
