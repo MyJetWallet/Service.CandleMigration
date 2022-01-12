@@ -51,12 +51,12 @@ namespace Service.CandleMigration.Domain
             candle = CandleType.Month;
             await LoadInterval(candle, source, storage, symbol, digits, isRevert, deph);
 
-            var reloadResult = await _candleGrpc.ReloadInstrumentAsync(new ReloadInstrumentContract()
-            {
-                InstrumentId = symbol
-            });
+//            var reloadResult = await _candleGrpc.ReloadInstrumentAsync(new ReloadInstrumentContract()
+//            {
+//                InstrumentId = symbol
+//            });
             
-            Console.WriteLine($"Instrument {symbol} is imported. Reload: {reloadResult.Result}");
+            Console.WriteLine($"Instrument {symbol} is imported.");
         }
         
         private static async Task LoadInterval(CandleType candle, string source, CandlesPersistentAzureStorage storage,
@@ -88,9 +88,12 @@ namespace Service.CandleMigration.Domain
             while (data.Any() && count < deph)
             {
                 Console.Write($"Read {data.Count} items from Binance ... ");
+                
                 await storage.BulkSave(symbol, true, digits, candle, data);
+                Console.WriteLine($"Save {data.Count} items to bids");
+                
                 await storage.BulkSave(symbol, false, digits, candle, data);
-                Console.WriteLine($"Save {data.Count} items");
+                Console.WriteLine($"Save {data.Count} items to asks");
 
                 var lastTime = data.Min(e => e.DateTime).UnixTime();
                 count += data.Count;
