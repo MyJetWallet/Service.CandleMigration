@@ -4,52 +4,43 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DotNetCoreDecorators;
+using MyJetWallet.Sdk.ServiceBus;
 using Newtonsoft.Json;
+using Service.CandleMigration.Domain.Models;
 using SimpleTrading.Abstraction.Candles;
-using SimpleTrading.CandlesHistory.AzureStorage;
 using SimpleTrading.CandlesHistory.Grpc;
-using SimpleTrading.CandlesHistory.Grpc.Contracts;
 
 namespace Service.CandleMigration.Domain
 {
     public class CandleImporter
     {
-        public static string AzureBidStorageConnString { get; set; }
-        public static string AzureAskStorageConnString { get; set; }
-
-        private readonly string _azureBidStorageConnString;
-        private readonly string _azureAskStorageConnString;
         private readonly ISimpleTradingCandlesHistoryGrpc _candleGrpc;
         private static HttpClient _http = new();
+        private readonly IServiceBusPublisher<CandleMigrationMessage> _publisher;
 
-        public CandleImporter(ISimpleTradingCandlesHistoryGrpc candleGrpc)
+        public CandleImporter(ISimpleTradingCandlesHistoryGrpc candleGrpc, IServiceBusPublisher<CandleMigrationMessage> publisher)
         {
-            _azureBidStorageConnString = AzureBidStorageConnString;
-            _azureAskStorageConnString = AzureAskStorageConnString;
             _candleGrpc = candleGrpc;
+            _publisher = publisher;
         }
 
         public async Task ImportInstrumentFromBinance(string symbol, string source, int digits, bool isRevert = false,
             int deph = 45000)
         {
-            var storage = new CandlesPersistentAzureStorage(
-                () => _azureBidStorageConnString,
-                () => _azureAskStorageConnString);
-
             Console.WriteLine();
             Console.WriteLine($"========= Load {symbol} from {source} =======");
 
             var candle = CandleType.Minute;
-            await LoadInterval(candle, source, storage, symbol, digits, isRevert, deph);
+            await LoadInterval(candle, source, symbol, digits, isRevert, deph);
 
             candle = CandleType.Hour;
-            await LoadInterval(candle, source, storage, symbol, digits, isRevert, deph);
+            await LoadInterval(candle, source, symbol, digits, isRevert, deph);
 
             candle = CandleType.Day;
-            await LoadInterval(candle, source, storage, symbol, digits, isRevert, deph);
+            await LoadInterval(candle, source, symbol, digits, isRevert, deph);
 
             candle = CandleType.Month;
-            await LoadInterval(candle, source, storage, symbol, digits, isRevert, deph);
+            await LoadInterval(candle, source, symbol, digits, isRevert, deph);
 
 //            var reloadResult = await _candleGrpc.ReloadInstrumentAsync(new ReloadInstrumentContract()
 //            {
@@ -59,8 +50,7 @@ namespace Service.CandleMigration.Domain
             Console.WriteLine($"Instrument {symbol} is imported.");
         }
         
-        private static async Task LoadInterval(CandleType candle, string source, CandlesPersistentAzureStorage storage,
-            string symbol, int digits, bool isRevert, int deph)
+        private async Task LoadInterval(CandleType candle, string source, string symbol, int digits, bool isRevert, int depth)
         {
             Console.WriteLine();
             Console.WriteLine($"----- {candle.ToString()} --------");
@@ -85,14 +75,30 @@ namespace Service.CandleMigration.Domain
             var data = await GetCandles(source, 1000, interval, 0, isRevert, digits);
 
             var count = 0;
-            while (data.Any() && count < deph)
+            while (data.Any() && count < depth)
             {
                 Console.Write($"Read {data.Count} items from Binance ... ");
-                
-                await storage.BulkSave(symbol, true, digits, candle, data);
+
+                await _publisher.PublishAsync(data.Select(binanceCandle => new CandleMigrationMessage
+                {
+                    Symbol = symbol,
+                    IsBid = true,
+                    Digits = digits,
+                    Candle = candle,
+                    Data = binanceCandle
+                }));
+                //await storage.BulkSave(symbol, true, digits, candle, data);
                 Console.WriteLine($"Save {data.Count} items to bids");
                 
-                await storage.BulkSave(symbol, false, digits, candle, data);
+                await _publisher.PublishAsync(data.Select(binanceCandle => new CandleMigrationMessage
+                {
+                    Symbol = symbol,
+                    IsBid = false,
+                    Digits = digits,
+                    Candle = candle,
+                    Data = binanceCandle
+                }));
+                //await storage.BulkSave(symbol, false, digits, candle, data);
                 Console.WriteLine($"Save {data.Count} items to asks");
 
                 var lastTime = data.Min(e => e.DateTime).UnixTime();

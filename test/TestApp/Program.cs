@@ -30,11 +30,11 @@ namespace TestApp
 
             var api = factory.CreateGrpcService<ISimpleTradingCandlesHistoryGrpc>();
 
-            var service = new CandleImporter(api);
-
-            await service.ImportInstrumentFromBinance("SOLUSD", "SOLBUSD", 2, false, 1000);
-            
-            
+            // var service = new CandleImporter(api);
+            //
+            // await service.ImportInstrumentFromBinance("SOLUSD", "SOLBUSD", 2, false, 1000);
+            //
+            //
             
             Console.WriteLine("End");
             Console.ReadLine();

@@ -26,6 +26,7 @@ namespace Service.CandleMigration.Settings
         [YamlProperty("CandleMigration.MyNoSqlReaderHostPort")]
         public string MyNoSqlReaderHostPort { get; set; }
         
-        
+        [YamlProperty("CandleMigration.SpotServiceBusHostPort")]
+        public string SpotServiceBusHostPort { get; set; }
     }
 }

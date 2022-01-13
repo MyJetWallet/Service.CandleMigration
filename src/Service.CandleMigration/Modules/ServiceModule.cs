@@ -3,8 +3,11 @@ using Autofac.Core;
 using Autofac.Core.Registration;
 using MyJetWallet.Sdk.Grpc;
 using MyJetWallet.Sdk.NoSql;
+using MyJetWallet.Sdk.Service;
+using MyJetWallet.Sdk.ServiceBus;
 using Service.AssetsDictionary.Client;
 using Service.CandleMigration.Domain;
+using Service.CandleMigration.Domain.Models;
 using SimpleTrading.CandlesHistory.Grpc;
 
 namespace Service.CandleMigration.Modules
@@ -17,10 +20,6 @@ namespace Service.CandleMigration.Modules
             var client = factory.CreateGrpcService<ISimpleTradingCandlesHistoryGrpc>();
 
             builder.RegisterInstance(client).As<ISimpleTradingCandlesHistoryGrpc>().SingleInstance();
-
-
-            CandleImporter.AzureAskStorageConnString = Program.Settings.AzureAskStorageConnString;
-            CandleImporter.AzureBidStorageConnString = Program.Settings.AzureBidStorageConnString;
             
             builder
                 .RegisterType<CandleImporter>()
@@ -35,6 +34,11 @@ namespace Service.CandleMigration.Modules
             var noSqlClient = builder.CreateNoSqlClient(() => Program.Settings.MyNoSqlReaderHostPort);
 
             builder.RegisterAssetsDictionaryClients(noSqlClient);
+
+            var serviceBusClient = builder.RegisterMyServiceBusTcpClient(Program.ReloadedSettings(e => e.SpotServiceBusHostPort), Program.LogFactory);
+
+            builder.RegisterMyServiceBusPublisher<CandleMigrationMessage>(serviceBusClient,
+                CandleMigrationMessage.TopicName, true);
         }
     }
 }
