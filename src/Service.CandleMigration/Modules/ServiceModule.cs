@@ -20,7 +20,7 @@ namespace Service.CandleMigration.Modules
 
 
             CandleImporter.AzureAskStorageConnString = Program.Settings.AzureAskStorageConnString;
-            CandleImporter.AzureBidStorageConnString = Program.Settings.AzureAskStorageConnString;
+            CandleImporter.AzureBidStorageConnString = Program.Settings.AzureBidStorageConnString;
             
             builder
                 .RegisterType<CandleImporter>()
