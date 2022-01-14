@@ -9,6 +9,7 @@ using Service.AssetsDictionary.Client;
 using Service.CandleMigration.Domain;
 using Service.CandleMigration.Domain.Models;
 using SimpleTrading.CandlesHistory.Grpc;
+using SimpleTrading.ServiceBus.Contracts;
 
 namespace Service.CandleMigration.Modules
 {
@@ -37,8 +38,8 @@ namespace Service.CandleMigration.Modules
 
             var serviceBusClient = builder.RegisterMyServiceBusTcpClient(Program.ReloadedSettings(e => e.SpotServiceBusHostPort), Program.LogFactory);
 
-            builder.RegisterMyServiceBusPublisher<CandleMigrationMessage>(serviceBusClient,
-                CandleMigrationMessage.TopicName, true);
+            builder.RegisterMyServiceBusPublisher<CandleMigrationServiceBusContract>(serviceBusClient,
+                CandleMigrationServiceBusContract.TopicName, true);
         }
     }
 }

@@ -10,6 +10,7 @@
     <PackageReference Include="MyJetWallet.Service.AssetsDictionary.Client" Version="1.10.1" />
     <PackageReference Include="SimpleTrading.CandlesHistory.AzureStorage" Version="1.0.20" />
     <PackageReference Include="SimpleTrading.CandlesHistory.Grpc" Version="1.0.17" />
+    <PackageReference Include="SimpleTrading.ServiceBus" Version="4.0.17" />
   </ItemGroup>
 
   <ItemGroup>

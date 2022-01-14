@@ -9,6 +9,8 @@ using Newtonsoft.Json;
 using Service.CandleMigration.Domain.Models;
 using SimpleTrading.Abstraction.Candles;
 using SimpleTrading.CandlesHistory.Grpc;
+using SimpleTrading.ServiceBus.Contracts;
+using SimpleTrading.ServiceBus.Models;
 
 namespace Service.CandleMigration.Domain
 {
@@ -16,9 +18,9 @@ namespace Service.CandleMigration.Domain
     {
         private readonly ISimpleTradingCandlesHistoryGrpc _candleGrpc;
         private static HttpClient _http = new();
-        private readonly IServiceBusPublisher<CandleMigrationMessage> _publisher;
+        private readonly IServiceBusPublisher<CandleMigrationServiceBusContract> _publisher;
 
-        public CandleImporter(ISimpleTradingCandlesHistoryGrpc candleGrpc, IServiceBusPublisher<CandleMigrationMessage> publisher)
+        public CandleImporter(ISimpleTradingCandlesHistoryGrpc candleGrpc, IServiceBusPublisher<CandleMigrationServiceBusContract> publisher)
         {
             _candleGrpc = candleGrpc;
             _publisher = publisher;
@@ -79,24 +81,38 @@ namespace Service.CandleMigration.Domain
             {
                 Console.Write($"Read {data.Count} items from Binance ... ");
 
-                await _publisher.PublishAsync(data.Select(binanceCandle => new CandleMigrationMessage
+                await _publisher.PublishAsync(data.Select(binanceCandle => new CandleMigrationServiceBusContract()
                 {
                     Symbol = symbol,
                     IsBid = true,
                     Digits = digits,
                     Candle = candle,
-                    Data = binanceCandle
+                    Data = new MigrationCandle
+                    {
+                        DateTime = binanceCandle.DateTime,
+                        Open = binanceCandle.Open,
+                        High = binanceCandle.High,
+                        Low = binanceCandle.Low,
+                        Close = binanceCandle.Close
+                    }
                 }));
                 //await storage.BulkSave(symbol, true, digits, candle, data);
                 Console.WriteLine($"Save {data.Count} items to bids");
                 
-                await _publisher.PublishAsync(data.Select(binanceCandle => new CandleMigrationMessage
+                await _publisher.PublishAsync(data.Select(binanceCandle => new CandleMigrationServiceBusContract
                 {
                     Symbol = symbol,
                     IsBid = false,
                     Digits = digits,
                     Candle = candle,
-                    Data = binanceCandle
+                    Data = new MigrationCandle
+                    {
+                        DateTime = binanceCandle.DateTime,
+                        Open = binanceCandle.Open,
+                        High = binanceCandle.High,
+                        Low = binanceCandle.Low,
+                        Close = binanceCandle.Close
+                    }
                 }));
                 //await storage.BulkSave(symbol, false, digits, candle, data);
                 Console.WriteLine($"Save {data.Count} items to asks");
