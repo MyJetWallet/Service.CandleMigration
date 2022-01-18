@@ -162,6 +162,8 @@ namespace Service.CandleMigration.Domain
             var json = await _http.GetStringAsync(url);
 
             var data = JsonConvert.DeserializeObject<string[][]>(json);
+            
+            Console.WriteLine(url);
 
             return data.Select(e => BinanceCandle.Create(e, isRevert, digit)).ToList();
 
