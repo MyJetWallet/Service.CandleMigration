@@ -34,15 +34,23 @@ namespace Service.CandleMigration.Domain
 
             var candle = CandleType.Minute;
             await LoadInterval(candle, source, symbol, digits, isRevert, deph);
+            if (source.Contains("BUSD"))
+                await LoadInterval(candle, source.Replace("BUSD", "USDC"), symbol, digits, isRevert, deph);
 
             candle = CandleType.Hour;
             await LoadInterval(candle, source, symbol, digits, isRevert, deph);
+            if (source.Contains("BUSD"))
+                await LoadInterval(candle, source.Replace("BUSD", "USDC"), symbol, digits, isRevert, deph);
 
             candle = CandleType.Day;
             await LoadInterval(candle, source, symbol, digits, isRevert, deph);
+            if (source.Contains("BUSD"))
+                await LoadInterval(candle, source.Replace("BUSD", "USDC"), symbol, digits, isRevert, deph);
 
             candle = CandleType.Month;
             await LoadInterval(candle, source, symbol, digits, isRevert, deph);
+            if (source.Contains("BUSD"))
+                await LoadInterval(candle, source.Replace("BUSD", "USDC"), symbol, digits, isRevert, deph);
 
 //            var reloadResult = await _candleGrpc.ReloadInstrumentAsync(new ReloadInstrumentContract()
 //            {
