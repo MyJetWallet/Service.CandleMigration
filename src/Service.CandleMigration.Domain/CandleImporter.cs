@@ -79,42 +79,63 @@ namespace Service.CandleMigration.Domain
             var count = 0;
             while (data.Any() && count < depth)
             {
-                Console.Write($"Read {data.Count} items from Binance ... ");
+                Console.WriteLine($"Read {data.Count} items from Binance ... ");
 
-                await _publisher.PublishAsync(data.Select(binanceCandle => new CandleMigrationServiceBusContract()
+                foreach (var items in data.Chunk(100))
                 {
-                    Symbol = symbol,
-                    IsBid = true,
-                    Digits = digits,
-                    Candle = candle,
-                    Data = new MigrationCandle
+                    var iterations = 10;
+                    while (iterations > 0)
                     {
-                        DateTime = binanceCandle.DateTime,
-                        Open = binanceCandle.Open,
-                        High = binanceCandle.High,
-                        Low = binanceCandle.Low,
-                        Close = binanceCandle.Close
+                        iterations--;
+                        
+                        try
+                        {
+                            await _publisher.PublishAsync(data.Select(binanceCandle =>
+                                new CandleMigrationServiceBusContract()
+                                {
+                                    Symbol = symbol,
+                                    IsBid = true,
+                                    Digits = digits,
+                                    Candle = candle,
+                                    Data = new MigrationCandle
+                                    {
+                                        DateTime = binanceCandle.DateTime,
+                                        Open = binanceCandle.Open,
+                                        High = binanceCandle.High,
+                                        Low = binanceCandle.Low,
+                                        Close = binanceCandle.Close
+                                    }
+                                }));
+
+                            await _publisher.PublishAsync(data.Select(binanceCandle =>
+                                new CandleMigrationServiceBusContract
+                                {
+                                    Symbol = symbol,
+                                    IsBid = false,
+                                    Digits = digits,
+                                    Candle = candle,
+                                    Data = new MigrationCandle
+                                    {
+                                        DateTime = binanceCandle.DateTime,
+                                        Open = binanceCandle.Open,
+                                        High = binanceCandle.High,
+                                        Low = binanceCandle.Low,
+                                        Close = binanceCandle.Close
+                                    }
+                                }));
+
+                            iterations = 0;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Cannot send messages to SB: {ex}");
+                            await Task.Delay(5000);
+                        }
                     }
-                }));
-                //await storage.BulkSave(symbol, true, digits, candle, data);
+
+                }
+
                 Console.WriteLine($"Save {data.Count} items to bids");
-                
-                await _publisher.PublishAsync(data.Select(binanceCandle => new CandleMigrationServiceBusContract
-                {
-                    Symbol = symbol,
-                    IsBid = false,
-                    Digits = digits,
-                    Candle = candle,
-                    Data = new MigrationCandle
-                    {
-                        DateTime = binanceCandle.DateTime,
-                        Open = binanceCandle.Open,
-                        High = binanceCandle.High,
-                        Low = binanceCandle.Low,
-                        Close = binanceCandle.Close
-                    }
-                }));
-                //await storage.BulkSave(symbol, false, digits, candle, data);
                 Console.WriteLine($"Save {data.Count} items to asks");
 
                 var lastTime = data.Min(e => e.DateTime).UnixTime();
