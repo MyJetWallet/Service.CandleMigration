@@ -169,6 +169,11 @@ namespace Service.CandleMigration.Domain
 
             var json = await _http.GetStringAsync(url);
 
+            if (json.Contains("Invalid symbol"))
+            {
+                return new List<BinanceCandle>();
+            }
+
             var data = JsonConvert.DeserializeObject<string[][]>(json);
             
             //Console.WriteLine(url);
