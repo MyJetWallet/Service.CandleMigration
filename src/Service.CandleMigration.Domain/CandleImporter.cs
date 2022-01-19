@@ -165,13 +165,13 @@ namespace Service.CandleMigration.Domain
             else
                 url += $"?symbol={symbol}&limit={limit}&interval={interval}";
 
-            //Console.WriteLine(url);
+            Console.WriteLine(url);
 
             var json = await _http.GetStringAsync(url);
 
             var data = JsonConvert.DeserializeObject<string[][]>(json);
             
-            Console.WriteLine(url);
+            //Console.WriteLine(url);
 
             return data.Select(e => BinanceCandle.Create(e, isRevert, digit)).ToList();
 
