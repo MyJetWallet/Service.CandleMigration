@@ -167,12 +167,17 @@ namespace Service.CandleMigration.Domain
 
             Console.WriteLine(url);
 
+            _http.Timeout = TimeSpan.FromSeconds(10);
             var json = await _http.GetStringAsync(url);
 
             if (json.Contains("Invalid symbol"))
             {
                 Console.WriteLine("Invalid symbol");
                 return new List<BinanceCandle>();
+            }
+            else
+            {
+                Console.WriteLine("Receive data from binance");
             }
 
             var data = JsonConvert.DeserializeObject<string[][]>(json);
