@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using DotNetCoreDecorators;
 using MyJetWallet.Sdk.ServiceBus;
@@ -158,39 +159,48 @@ namespace Service.CandleMigration.Domain
         public static async Task<List<BinanceCandle>> GetCandles(string symbol, int limit, string interval,
             long endtime, bool isRevert, int digit)
         {
-            var url = "https://api.binance.com/api/v3/klines";
-
-            if (endtime > 0)
-                url += $"?symbol={symbol}&limit={limit}&interval={interval}&endTime={endtime}";
-            else
-                url += $"?symbol={symbol}&limit={limit}&interval={interval}";
-
-            Console.WriteLine(url);
-
-            _http.Timeout = TimeSpan.FromSeconds(10);
-            var json = await _http.GetStringAsync(url);
-
-            if (json.Contains("Invalid symbol"))
+            try
             {
-                Console.WriteLine("Invalid symbol");
+                var url = "https://api.binance.com/api/v3/klines";
+
+                if (endtime > 0)
+                    url += $"?symbol={symbol}&limit={limit}&interval={interval}&endTime={endtime}";
+                else
+                    url += $"?symbol={symbol}&limit={limit}&interval={interval}";
+
+                Console.WriteLine(url);
+
+                //_http.Timeout = TimeSpan.FromSeconds(10);
+                var cts = new CancellationTokenSource();
+                cts.CancelAfter(10000);
+                var json = await _http.GetStringAsync(url, cts.Token);
+
+                if (json.Contains("Invalid symbol"))
+                {
+                    Console.WriteLine("Invalid symbol");
+                    return new List<BinanceCandle>();
+                }
+                else
+                {
+                    Console.WriteLine("Receive data from binance");
+                }
+
+                var data = JsonConvert.DeserializeObject<string[][]>(json);
+
+                //Console.WriteLine(url);
+
+                return data.Select(e => BinanceCandle.Create(e, isRevert, digit)).ToList();
+
+
+
+                //https://api.binance.com/api/v3/klines?symbol=BTCUSD&limit=10&interval=1m
+                //https://api.binance.com/api/v3/klines?symbol=BTCBUSD&limit=2&interval=1m&endTime=1629381839999
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"cannot read date: {ex.Message}");
                 return new List<BinanceCandle>();
             }
-            else
-            {
-                Console.WriteLine("Receive data from binance");
-            }
-
-            var data = JsonConvert.DeserializeObject<string[][]>(json);
-            
-            //Console.WriteLine(url);
-
-            return data.Select(e => BinanceCandle.Create(e, isRevert, digit)).ToList();
-
-
-
-            //https://api.binance.com/api/v3/klines?symbol=BTCUSD&limit=10&interval=1m
-            //https://api.binance.com/api/v3/klines?symbol=BTCBUSD&limit=2&interval=1m&endTime=1629381839999
-
         }
     }
 }
