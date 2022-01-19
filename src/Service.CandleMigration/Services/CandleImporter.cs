@@ -1,4 +1,6 @@
+using System;
 using System.Threading.Tasks;
+using MyJetWallet.Sdk.Service;
 using Service.CandleMigration.Domain;
 using Service.CandleMigration.Grpc;
 using Service.CandleMigration.Grpc.Models;
@@ -19,6 +21,8 @@ namespace Service.CandleMigration.Services
         {
             if (request.CountCandles == 0)
                 request.CountCandles = 45000;
+            
+            Console.WriteLine($"Start import: {request.ToJson()}");
             
             var result = _processor.StartImport(request.InstrumentSymbols, request.CountCandles);
             return new StartImportResponse()
