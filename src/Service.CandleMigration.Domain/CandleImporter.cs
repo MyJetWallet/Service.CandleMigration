@@ -171,6 +171,7 @@ namespace Service.CandleMigration.Domain
 
             if (json.Contains("Invalid symbol"))
             {
+                Console.WriteLine("Invalid symbol");
                 return new List<BinanceCandle>();
             }
 
