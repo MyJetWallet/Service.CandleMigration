@@ -87,15 +87,16 @@ namespace Service.CandleMigration.Domain
             var count = 0;
             while (data.Any() && count < depth)
             {
-                Console.WriteLine($"Read {data.Count} items from Binance ... ");
+                Console.WriteLine($"{DateTime.UtcNow:HH:mm:ss} Read {data.Count} items from Binance [handled: {count}] ... ");
 
+                var senditerations = 0;
                 foreach (var items in data.Chunk(100))
                 {
                     var iterations = 10;
                     while (iterations > 0)
                     {
                         iterations--;
-                        
+                        senditerations++;
                         try
                         {
                             await _publisher.PublishAsync(data.Select(binanceCandle =>
@@ -136,15 +137,14 @@ namespace Service.CandleMigration.Domain
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Cannot send messages to SB: {ex}");
+                            Console.WriteLine($"{DateTime.UtcNow:HH:mm:ss} Cannot send messages to SB: {ex}");
                             await Task.Delay(5000);
                         }
                     }
 
                 }
 
-                Console.WriteLine($"Save {data.Count} items to bids");
-                Console.WriteLine($"Save {data.Count} items to asks");
+                Console.WriteLine($"{DateTime.UtcNow:HH:mm:ss} Save {data.Count} items to bids and ask [{senditerations}]");
 
                 var lastTime = data.Min(e => e.DateTime).UnixTime();
                 count += data.Count;
