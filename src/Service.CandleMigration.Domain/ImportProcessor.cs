@@ -74,7 +74,7 @@ namespace Service.CandleMigration.Domain
                 var market = instrument.ConvertSourceMarket;
                 var accuracy = instrument.Accuracy;
 
-                lock (_gate) _report.AppendLine($"Start import {symbol} from {market} ...");
+                lock (_gate) _report.AppendLine($"Start import {symbol} from {market} [acc: {accuracy}; dep: {deph}] ...");
                 await _importer.ImportInstrumentFromBinance(symbol, market, accuracy, false, deph);
                 lock (_gate) _report.AppendLine($"Finish import {symbol} from {market}.");
                 lock (_gate) _report.AppendLine();
