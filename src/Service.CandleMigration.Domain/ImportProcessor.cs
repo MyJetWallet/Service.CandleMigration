@@ -63,12 +63,15 @@ namespace Service.CandleMigration.Domain
                     lock (_gate)
                         _report.AppendLine(
                             $"Cannot execute import from {instrument.ConvertSourceExchange}, instrument {symbol}");
+                    
+                    Console.WriteLine($"Cannot execute import from {instrument.ConvertSourceExchange}, instrument {symbol}");
                     continue;
                 }
 
                 if (string.IsNullOrEmpty(instrument.ConvertSourceMarket))
                 {
                     lock (_gate) _report.AppendLine($"Cannot execute import instrument {symbol}. ExternalMarket is empty");
+                    Console.WriteLine($"Cannot execute import instrument {symbol}. ExternalMarket is empty");
                     continue;
                 }
 
@@ -79,6 +82,7 @@ namespace Service.CandleMigration.Domain
                 lock (_gate) _report.AppendLine($"Start import {symbol} from {market} [acc: {accuracy}; dep: {deph}] ...");
                 await _importer.ImportInstrumentFromBinance(symbol, market, accuracy, false, deph);
                 lock (_gate) _report.AppendLine($"Finish import {symbol} from {market}.");
+                Console.WriteLine($"Finish import {symbol} from {market}.");
                 lock (_gate) _report.AppendLine();
             }
 
