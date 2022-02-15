@@ -6,8 +6,8 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetCoreDecorators" Version="1.0.21" />
-    <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="2.2.1" />
-    <PackageReference Include="MyJetWallet.Service.AssetsDictionary.Client" Version="2.5.0" />
+    <PackageReference Include="MyJetWallet.Sdk.ServiceBus" Version="2.2.2" />
+    <PackageReference Include="MyJetWallet.Service.AssetsDictionary.Client" Version="2.6.0" />
     <PackageReference Include="SimpleTrading.CandlesHistory.AzureStorage" Version="1.0.20" />
     <PackageReference Include="SimpleTrading.CandlesHistory.Grpc" Version="1.0.17" />
     <PackageReference Include="SimpleTrading.ServiceBus" Version="4.0.17" />
