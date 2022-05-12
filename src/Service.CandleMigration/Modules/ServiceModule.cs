@@ -32,7 +32,7 @@ namespace Service.CandleMigration.Modules
             builder.RegisterType<ImportProcessor>().AsSelf().SingleInstance();
 
 
-            var noSqlClient = builder.CreateNoSqlClient(() => Program.Settings.MyNoSqlReaderHostPort);
+            var noSqlClient = builder.CreateNoSqlClient(Program.Settings.MyNoSqlReaderHostPort, Program.LogFactory);
 
             builder.RegisterAssetsDictionaryClients(noSqlClient);
 
